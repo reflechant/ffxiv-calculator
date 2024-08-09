@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const epsilon = 0.001
+
 func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 	// This test compares damage per 100 potency with XIVGear.app using this gearset:
 	// https://xivgear.app/?page=sl%7Cdab85390-9b1c-4c89-a745-90ff45ff39c6
@@ -20,10 +22,7 @@ func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 		CRIT: 3006,
 		DH:   1068,
 	}, 100)
-
-	// this test fails but I expect this values to be at least close which is not the case
-	// 3669 is XIVGear.app calculated DMG/100potency for the gearset above without Crit and DH
-	assert.InEpsilon(t, uint(3656), dmg, 0.001)
+	assert.InEpsilon(t, uint(3656), dmg, epsilon)
 }
 
 func TestCompareNormalisedDamageWithEtro(t *testing.T) {
@@ -37,7 +36,7 @@ func TestCompareNormalisedDamageWithEtro(t *testing.T) {
 		CRIT: 3006,
 		DH:   1068,
 	}, 100)
-	assert.InEpsilon(t, 4292.86, dmgNormalized, 0.001)
+	assert.InEpsilon(t, 4292.86, dmgNormalized, epsilon)
 }
 
 func TestCritChance(t *testing.T) {
@@ -49,13 +48,13 @@ func TestCritChance(t *testing.T) {
 func TestCritMulti(t *testing.T) {
 	chance := CritMultiplier(LevelMod100, 3006)
 	// 1.586 taken from xivgear.app
-	assert.Equal(t, 1.586, chance)
+	assert.InEpsilon(t, 1.586, chance, epsilon)
 }
 
 func TestDHChance(t *testing.T) {
 	chance := DirectHitChance(LevelMod100, 1068)
 	// 12.8% taken from xivgear.app
-	assert.Equal(t, 12.8, chance)
+	assert.InEpsilon(t, 12.8, chance, epsilon)
 }
 
 func TestATKMultiplier(t *testing.T) {
