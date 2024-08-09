@@ -9,8 +9,6 @@ import argparse
 
 import scrapy
 from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from scrapy.utils.log import configure_logging
 
 
 # [category2, category3] are numbers for the URL
@@ -32,6 +30,7 @@ limits = {
     "min_ilvl": 1,
     "max_ilvl": 999,
 }
+
 
 class ItemSpider(scrapy.Spider):
     name = "item_spider"
@@ -124,15 +123,12 @@ def main():
     limits["min_ilvl"] = args.min_ilvl
     limits["max_ilvl"] = args.max_ilvl
 
-    # settings = get_project_settings()
-    # settings.set("LOG_LEVEL", "WARNING",              ority="spider")
     settings = {
         "FEEDS": {
             args.out: {"format": "json"},
         },
         "LOG_LEVEL": "WARNING",
     }
-    # configure_logging(settings)
     runner = CrawlerProcess(settings)
 
     runner.crawl(ItemSpider)
