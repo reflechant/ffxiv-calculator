@@ -4,9 +4,6 @@
 A Scrapy-based web crawler for the official FFXIV Eorzea Database to generate JSONL files with gear to use in gearset calculation
 """
 
-# https://na.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2=1&category3=106&difficulty=&min_item_lv=710&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q=
-# https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2=1&category3=106&difficulty=&min_item_lv=710&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q=
-
 import re
 
 import scrapy
