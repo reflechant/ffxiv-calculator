@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-A Scrapy-based web crawler for the official FFXIV Eorzea Database to generate JSONL files with gear to use in gearset calculation
+A Scrapy-based web crawler for the official FFXIV Eorzea Database. Generates a JSON file with gear information.
 """
 
 import re
