@@ -14,7 +14,7 @@ from scrapy.utils.log import configure_logging
 
 # [category2, category3] are numbers for the URL
 categories = {
-    "Arms": [1, ""], # for all classes
+    "Arms": [1, ""],  # for all classes
     "Shield": [3, 11],
     "Head": [3, 34],
     "Body": [3, 35],
@@ -28,16 +28,13 @@ categories = {
 }
 
 
-class WeaponSpider(scrapy.Spider):
-    name = "weapon_spider"
+class ItemSpider(scrapy.Spider):
+    name = "item_spider"
     min_ilvl = 710
-    cat2, cat3 = categories["Arms"]
 
-    start_urls = [
-        f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2={cat2}&category3={cat3}&difficulty=&min_item_lv={min_ilvl}&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
-    ]
+    start_urls = ["https://eu.finalfantasyxiv.com/lodestone/playguide/db/"]
 
-    def parse_weapon(self, response):
+    def parse_item(self, response, cat_name):
         name: str = response.css("h2.db-view__item__text__name::text").get()
         name = name.replace("\n", "")
         name = name.replace("\t", "")
@@ -51,8 +48,6 @@ class WeaponSpider(scrapy.Spider):
             "div.db-view__item_spec > div > div.db-view__item_spec__value > strong::text"
         ).getall()
         specs = zip(spec_names, (float(v) for v in spec_values))
-
-        dmg = int(response.css("div.sys_nq_element > div > strong::text").get())
 
         job = response.css("div.db-view__item_equipment__class::text").get().split()
         job_lvl_str = response.css("div.db-view__item_equipment__level::text").get()
@@ -71,9 +66,9 @@ class WeaponSpider(scrapy.Spider):
         )
 
         yield {
+            "type": cat_name,
             "name": name,
             "ilvl": ilvl,
-            "dmg": dmg,
             "job": job,
             "job level": job_lvl,
             **dict(specs),
@@ -81,14 +76,30 @@ class WeaponSpider(scrapy.Spider):
             "materia slots": materia_slots,
         }
 
-    def parse(self, response):
-        for weapon in response.css("a.db-table__txt--detail_link"):
-            a = weapon.css("::attr(href)").get()
-            yield response.follow(a, callback=self.parse_weapon)
+    def parse_category(self, response, cat_name):
+        for item in response.css("a.db-table__txt--detail_link"):
+            item_url = item.css("::attr(href)").get()
+            item_url = response.urljoin(item_url)
+            yield scrapy.Request(
+                url=item_url, callback=self.parse_item, cb_kwargs={"cat_name": cat_name}
+            )
 
         next_page = response.css('li.next a::attr("href")').get()
         if next_page is not None:
-            yield response.follow(next_page, self.parse)
+            next_page = response.urljoin(next_page)
+            yield scrapy.Request(
+                url=next_page,
+                callback=self.parse_category,
+                cb_kwargs={"cat_name": cat_name},
+            )
+
+    def parse(self, response):
+        for name, cats in categories.items():
+            cat2, cat3 = cats
+            cat_url = f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2={cat2}&category3={cat3}&difficulty=&min_item_lv={self.min_ilvl}&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
+            yield scrapy.Request(
+                url=cat_url, callback=self.parse_category, cb_kwargs={"cat_name": name}
+            )
 
 
 def main():
@@ -102,7 +113,7 @@ def main():
     # configure_logging(settings)
     runner = CrawlerProcess(settings)
 
-    runner.crawl(WeaponSpider)
+    runner.crawl(ItemSpider)
     runner.start()
 
 
