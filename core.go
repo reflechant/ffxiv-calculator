@@ -8,55 +8,83 @@ func Speed(lvl LevelMod, SS uint) uint {
 	return 130*(SS-lvl.Sub)/lvl.Div + 1000
 }
 
-func TankAttack(AP uint) uint {
+func AttackFactor(lvl LevelMod, AP uint) uint {
 	// uses attack power (AP) or magic attack potency (MAP)
-	return uint(115*(AP-340)/340) + 100
+	// tank=190, others=237
+	return 190*(AP-lvl.Main)/lvl.Main + 100
 }
 
-func Determination(lvl LevelMod, DET uint) uint {
-	return 130*(DET-lvl.Main)/lvl.Div + 1000
+func DeterminationFactor(lvl LevelMod, DET uint) uint {
+	return 140*(DET-lvl.Main)/lvl.Div + 1000
 }
 
-func Tenacity(lvl LevelMod, TNC uint) uint {
-	return 100*(TNC-lvl.Sub)/lvl.Div + 1000
+func TenacityFactor(lvl LevelMod, TNC uint) uint {
+	return 112*(TNC-lvl.Sub)/lvl.Div + 1000
 }
 
-func WeaponDamage(lvl LevelMod, job JobMod, weaponDmg uint) uint {
+func WeaponDamageFactor(lvl LevelMod, job JobMod, WD uint) uint {
 	// weaponDmg is Physical Damage or Magical Damage of the weapon
 	// the attribute being used depends on the action, (STR for GNB)
-	return lvl.Main*uint(job.STR)/1000 + weaponDmg
+	return lvl.Main*uint(job.STR)/1000 + WD
 }
 
 // Direct Hit (DH damage is 1.25x of normal)
 
-func DirectHitChance(lvl LevelMod, DH uint) float32 {
-	return float32(uint(550*(DH-lvl.Sub)/lvl.Div)) / 10
+const dhMultiplier float64 = 1.25
+
+func DirectHitChance(lvl LevelMod, DH uint) float64 {
+	return float64(uint(550*(DH-lvl.Sub)/lvl.Div)) / 10
 }
 
 // Crit
 
-func CritChance(lvl LevelMod, CRIT uint) float32 {
-	return float32(uint(200*(CRIT-lvl.Sub)/lvl.Div+50)) / 10
+func CritChance(lvl LevelMod, CRIT uint) float64 {
+	return float64(uint(200*(CRIT-lvl.Sub)/lvl.Div+50)) / 10
 }
 
-func CritDmg(lvl LevelMod, CRIT uint) uint {
-	return 200*(CRIT-lvl.Sub)/lvl.Div + 1400
+func CritMultiplier(lvl LevelMod, CRIT uint) float64 {
+	return float64(200*(CRIT-lvl.Sub)/lvl.Div+1400) / 1000
 }
 
 // GCD
 
-func GCD() float32 {
-	return 0.0
+func GCD() float64 {
+	panic("not implemented yet")
 }
 
 // Damage (DMG)
 
-func DamageBeforeCritDH(lvl LevelMod, job JobMod, potency uint, WD, AP, DET, TNC uint) float64 {
-	D1 := ((potency * TankAttack(AP) * Determination(lvl, DET)) / 100) / 1000
-	D2 := ((D1 * Tenacity(lvl, TNC)) / 1000) * WeaponDamage(lvl, job, WD) / 100
-	D3 := D2 // crit and dh modifiers
+type Attributes struct {
+	Lvl  LevelMod
+	Job  JobMod
+	WD   uint
+	AP   uint
+	DET  uint
+	TNC  uint
+	CRIT uint
+	DH   uint
+}
 
-	return float64(D3) //* math.Sqrt(0.01/12) // +-5% damage variance, uniform distribution
+// DamageBase returns damage without CRIT or DH. Damage randomization (+- 5%) not accounted for.
+func DamageBase(attr Attributes, potency uint) uint {
+	D1 := potency * AttackFactor(attr.Lvl, attr.AP) / 100
+	D2 := D1 * DeterminationFactor(attr.Lvl, attr.DET) / 1000
+	D3 := (D2 * TenacityFactor(attr.Lvl, attr.TNC)) / 1000
+	D4 := D3 * WeaponDamageFactor(attr.Lvl, attr.Job, attr.WD) / 100
+	return D4
+}
+
+// DamageNormalized returns average damage accounting for CRIT and DH chance. Damage randomization (+- 5%) not accounted for.
+func DamageNormalized(attr Attributes, potency uint) float64 {
+	D := DamageBase(attr, potency)
+	D2 := normalize(float64(D), CritMultiplier(attr.Lvl, attr.CRIT), CritChance(attr.Lvl, attr.CRIT))
+	D3 := normalize(D2, dhMultiplier, DirectHitChance(attr.Lvl, attr.DH))
+	return D3
+}
+
+// normalize returns normalized base value according to multiplier and its probability(chance). Formula taken from etro.gg's help page. Multiplier is expected to be >= 1.
+func normalize(base, multiplier, chance float64) float64 {
+	return base * (1 + chance/100*(multiplier-1))
 }
 
 // Attributes
