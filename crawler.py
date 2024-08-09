@@ -14,7 +14,7 @@ from scrapy.utils.log import configure_logging
 
 # [category2, category3] are numbers for the URL
 categories = {
-    "Arms": [1, ""],
+    "Arms": [1, ""], # for all classes
     "Shield": [3, 11],
     "Head": [3, 34],
     "Body": [3, 35],
@@ -31,9 +31,10 @@ categories = {
 class WeaponSpider(scrapy.Spider):
     name = "weapon_spider"
     min_ilvl = 710
+    cat2, cat3 = categories["Arms"]
 
     start_urls = [
-        f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2=1&category3=106&difficulty=&min_item_lv={min_ilvl}&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
+        f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2={cat2}&category3={cat3}&difficulty=&min_item_lv={min_ilvl}&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
     ]
 
     def parse_weapon(self, response):
@@ -53,7 +54,7 @@ class WeaponSpider(scrapy.Spider):
 
         dmg = int(response.css("div.sys_nq_element > div > strong::text").get())
 
-        job = response.css("div.db-view__item_equipment__class::text").get()
+        job = response.css("div.db-view__item_equipment__class::text").get().split()
         job_lvl_str = response.css("div.db-view__item_equipment__level::text").get()
         job_lvl_regex = re.compile(r"Lv\.\s(\d+)")
         job_lvl = int(job_lvl_regex.match(job_lvl_str).group(1))
