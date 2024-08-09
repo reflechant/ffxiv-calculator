@@ -5,6 +5,7 @@ A Scrapy-based web crawler for the official FFXIV Eorzea Database to generate JS
 """
 
 import re
+import argparse
 
 import scrapy
 from scrapy.crawler import CrawlerProcess
@@ -27,10 +28,13 @@ categories = {
     "Ring": [4, 43],
 }
 
+limits = {
+    "min_ilvl": 1,
+    "max_ilvl": 999,
+}
 
 class ItemSpider(scrapy.Spider):
     name = "item_spider"
-    min_ilvl = 710
 
     start_urls = ["https://eu.finalfantasyxiv.com/lodestone/playguide/db/"]
 
@@ -96,19 +100,37 @@ class ItemSpider(scrapy.Spider):
     def parse(self, response):
         for name, cats in categories.items():
             cat2, cat3 = cats
-            cat_url = f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2={cat2}&category3={cat3}&difficulty=&min_item_lv={self.min_ilvl}&max_item_lv=&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
+            cat_url = f"https://eu.finalfantasyxiv.com/lodestone/playguide/db/item/?patch=&db_search_category=item&category2={cat2}&category3={cat3}&difficulty=&min_item_lv={limits['min_ilvl']}&max_item_lv={limits['max_ilvl']}&min_gear_lv=&max_gear_lv=&min_craft_lv=&max_craft_lv=&q="
             yield scrapy.Request(
                 url=cat_url, callback=self.parse_category, cb_kwargs={"cat_name": name}
             )
 
 
+def init_argparse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Download information about all FFXIV gear items from the official Eorzea Database"
+    )
+
+    parser.add_argument("-min", "--min_ilvl", default=1, type=int)
+    parser.add_argument("-max", "--max_ilvl", default=999, type=int)
+    parser.add_argument("-o", "--out", default="items.json")
+
+    return parser
+
+
 def main():
+    parser = init_argparse()
+    args = parser.parse_args()
+    limits["min_ilvl"] = args.min_ilvl
+    limits["max_ilvl"] = args.max_ilvl
+
     # settings = get_project_settings()
-    # settings.set("LOG_LEVEL", "WARNING", priority="spider")
+    # settings.set("LOG_LEVEL", "WARNING",              ority="spider")
     settings = {
         "FEEDS": {
-            "items.json": {"format": "json"},
+            args.out: {"format": "json"},
         },
+        "LOG_LEVEL": "WARNING",
     }
     # configure_logging(settings)
     runner = CrawlerProcess(settings)
