@@ -27,3 +27,6 @@
 # Go workspace files
 go.work
 go.work.sum
+
+# Python cache
+__pycache__/
