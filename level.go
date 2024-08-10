@@ -1,6 +1,6 @@
 package main
 
-type LevelMod struct {
+type Level struct {
 	HP   int
 	MP   int
 	Main int
@@ -8,10 +8,7 @@ type LevelMod struct {
 	Div  int
 }
 
-var LevelMod100 = LevelMod{
-	HP:   4000,
-	MP:   10000,
-	Main: 440,
-	Sub:  420,
-	Div:  2780,
-}
+var (
+	Lvl1   = Level{HP: 86, MP: 10000, Main: 20, Sub: 56, Div: 56}
+	Lvl100 = Level{HP: 4000, MP: 10000, Main: 440, Sub: 420, Div: 2780}
+)

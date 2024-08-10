@@ -3,10 +3,15 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
+	"log"
 )
 
 type GearSet struct {
-	Job     Job
+	Lvl  Level
+	Job  Job
+	Clan Clan
+
 	Weapon  GearItem
 	OffHand GearItem
 
@@ -25,6 +30,7 @@ type GearSet struct {
 
 func (set GearSet) Stats() Stats {
 	return SumStats(
+		BaseStats(set.Lvl, set.Job, set.Clan),
 		set.Weapon.EffectiveStats(),
 		set.OffHand.EffectiveStats(),
 
@@ -43,20 +49,38 @@ func (set GearSet) Stats() Stats {
 }
 
 func (set GearSet) DamageBase() int {
+	fmt.Printf("%#v\n", Attributes{
+		Lvl:  Lvl100,
+		Job:  set.Job,
+		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
+		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
+		DET:  set.Stats().DET,
+		TNC:  set.Stats().TNC,
+		CRIT: set.Stats().CRIT,
+		DH:   set.Stats().DH,
+	})
 	return DamageBase(Attributes{
-		Lvl: LevelMod100,
-		Job: set.Job,
-		WD:  int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-		AP:  set.Stats().STR,
+		Lvl:  Lvl100,
+		Job:  set.Job,
+		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
+		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
+		DET:  set.Stats().DET,
+		TNC:  set.Stats().TNC,
+		CRIT: set.Stats().CRIT,
+		DH:   set.Stats().DH,
 	}, 100)
 }
 
 func (set GearSet) DamageNormalized() float64 {
 	return DamageNormalized(Attributes{
-		Lvl: LevelMod100,
-		Job: set.Job,
-		WD:  int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-		AP:  set.Stats().STR,
+		Lvl:  Lvl100,
+		Job:  set.Job,
+		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
+		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
+		DET:  set.Stats().DET,
+		TNC:  set.Stats().TNC,
+		CRIT: set.Stats().CRIT,
+		DH:   set.Stats().DH,
 	}, 100)
 }
 
@@ -67,11 +91,11 @@ type GearItem struct {
 	Jobs   Job    // bitmask
 	JobLvl uint   `json:"job level"`
 	Stats
-	PhysDMG       float64 `json:"Physical Damage"`
-	MagDMG        float64 `json:"Magic Damage"`
-	AutoAtk       float64 `json:"Auto-attack"`
-	Delay         float64 `json:"Delay"`
-	MateriaSlots  int     `json:"materia slots"`
+	PhysDMG       float64 `json:"Physical Damage,omitempty"`
+	MagDMG        float64 `json:"Magic Damage,omitempty"`
+	AutoAtk       float64 `json:"Auto-attack,omitempty"`
+	Delay         float64 `json:"Delay,omitempty"`
+	MateriaSlots  int     `json:"materia slots,omitempty"`
 	MateriaMelded []Materia
 }
 
@@ -83,10 +107,15 @@ func (it GearItem) EffectiveStats() Stats {
 		secondaryStats = SumSecondaryStats(secondaryStats, m.SecondaryStats)
 	}
 
-	return Stats{
+	stats := Stats{
 		MainStats:      it.Stats.MainStats,
 		SecondaryStats: secondaryStats.Cap(cap),
 	}
+	// fmt.Printf("%v stats:\n", it.Name)
+	// statsJSON, _ := json.MarshalIndent(stats, "", "  ")
+	// fmt.Println(string(statsJSON))
+
+	return stats
 }
 
 func (it GearItem) SecondaryStatCap() int {
@@ -104,19 +133,19 @@ func (it GearItem) Meld(materia Materia) GearItem {
 	if len(it.MateriaMelded) >= it.MateriaSlots {
 		return it
 	}
-	return GearItem{
-		Stats:         it.Stats,
-		MateriaSlots:  it.MateriaSlots + 1,
-		MateriaMelded: append(it.MateriaMelded, materia),
-	}
+	it.MateriaSlots++
+	it.MateriaMelded = append(it.MateriaMelded, materia)
+	// return GearItem{
+	// 	Stats:         it.Stats,
+	// 	MateriaSlots:  it.MateriaSlots + 1,
+	// 	MateriaMelded: append(it.MateriaMelded, materia),
+	// }
+
+	return it
 }
 
 func (it GearItem) WD() float64 {
-	if it.PhysDMG == 0.0 {
-		return it.MagDMG
-	}
-
-	return it.PhysDMG
+	return max(it.PhysDMG, it.MagDMG)
 }
 
 //go:embed items.json
@@ -129,4 +158,18 @@ func LoadGear() ([]GearItem, error) {
 	err := json.Unmarshal(data, &gear)
 
 	return gear, err
+}
+
+func GearMap() map[string]GearItem {
+	gear, err := LoadGear()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gearMap := make(map[string]GearItem)
+	for _, g := range gear {
+		gearMap[g.Name] = g
+	}
+
+	return gearMap
 }

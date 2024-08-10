@@ -1,11 +1,11 @@
 package main
 
 type MainStats struct {
-	STR int `json:"Strength"`
-	DEX int `json:"Dexterity"`
-	VIT int `json:"Vitality"`
-	INT int `json:"Intelligence"`
-	MND int `json:"Mind"`
+	STR int `json:"Strength,omitempty"`
+	DEX int `json:"Dexterity,omitempty"`
+	VIT int `json:"Vitality,omitempty"`
+	INT int `json:"Intelligence,omitempty"`
+	MND int `json:"Mind,omitempty"`
 }
 
 func SumMainStats(stats ...MainStats) MainStats {
@@ -22,13 +22,13 @@ func SumMainStats(stats ...MainStats) MainStats {
 }
 
 type SecondaryStats struct {
-	CRIT int `json:"Critical Hit"`
-	DET  int `json:"Determination"`
-	DH   int `json:"Direct Hit Rate"`
-	SKS  int `json:"Skill Speed"`
-	SPS  int `json:"Spell Speed"`
-	TNC  int `json:"Tenacity"`
-	PT   int `json:"Piety"`
+	CRIT int `json:"Critical Hit,omitempty"`
+	DET  int `json:"Determination,omitempty"`
+	DH   int `json:"Direct Hit Rate,omitempty"`
+	SKS  int `json:"Skill Speed,omitempty"`
+	SPS  int `json:"Spell Speed,omitempty"`
+	TNC  int `json:"Tenacity,omitempty"`
+	PT   int `json:"Piety,omitempty"`
 }
 
 // Cap returnes capped secondary stats

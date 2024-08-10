@@ -13,7 +13,7 @@ func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 	// https://xivgear.app/?page=sl%7Cdab85390-9b1c-4c89-a745-90ff45ff39c6
 
 	dmg := DamageBase(Attributes{
-		Lvl:  LevelMod100,
+		Lvl:  Lvl100,
 		Job:  GNB,
 		WD:   141,
 		AP:   4395,
@@ -27,7 +27,7 @@ func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 
 func TestCompareNormalisedDamageWithEtro(t *testing.T) {
 	dmgNormalized := DamageNormalized(Attributes{
-		Lvl:  LevelMod100,
+		Lvl:  Lvl100,
 		Job:  GNB,
 		WD:   141,
 		AP:   4395,
@@ -40,29 +40,34 @@ func TestCompareNormalisedDamageWithEtro(t *testing.T) {
 }
 
 func TestCritChance(t *testing.T) {
-	chance := CritChance(LevelMod100, 3006)
+	chance := CritChance(Lvl100, 3006)
 	// 23.6% taken from xivgear.app
 	assert.Equal(t, 23.6, chance)
 }
 
 func TestCritMulti(t *testing.T) {
-	chance := CritMultiplier(LevelMod100, 3006)
+	chance := CritMultiplier(Lvl100, 3006)
 	// 1.586 taken from xivgear.app
 	assert.InEpsilon(t, 1.586, chance, epsilon)
 }
 
 func TestDHChance(t *testing.T) {
-	chance := DirectHitChance(LevelMod100, 1068)
+	chance := DirectHitChance(Lvl100, 1068)
 	// 12.8% taken from xivgear.app
 	assert.InEpsilon(t, 12.8, chance, epsilon)
 }
 
 func TestATKMultiplier(t *testing.T) {
-	atk := AttackFactor(LevelMod100, 4395, GNB)
+	atk := AttackFactor(Lvl100, 4395, GNB)
 	assert.Equal(t, 18.07, float64(atk)/100)
 }
 
 func TestDeterminationMultiplier(t *testing.T) {
-	det := DeterminationFactor(LevelMod100, 1978)
+	det := DeterminationFactor(Lvl100, 1978)
 	assert.Equal(t, 1.077, float64(det)/1000)
+}
+
+func TestBaseStats(t *testing.T) {
+	stats := BaseStats(Lvl100, GNB, KeepersOfTheMoon)
+	assert.Equal(t, 439, stats.STR)
 }

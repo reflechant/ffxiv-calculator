@@ -1,61 +1,79 @@
 package main
 
+import "fmt"
+
 // All the formulas and values come from the Allagan Studies project
 // (see https://www.akhmorning.com/)
 
-func BaseAttributes(lvl LevelMod, job Job, clan string) MainStats {
-	return MainStats{
-		STR: lvl.Main * JobModifiers[job].STR / 100,
-		DEX: 0,
-		VIT: 0,
-		INT: 0,
-		MND: 0,
+func BaseStats(lvl Level, job Job, clan Clan) Stats {
+	return Stats{
+		MainStats: MainStats{
+			STR: lvl.Main*job.Stats().STR/100 + clan.Stats().STR,
+			DEX: lvl.Main*job.Stats().DEX/100 + clan.Stats().DEX,
+			VIT: lvl.Main*job.Stats().VIT/100 + clan.Stats().VIT,
+			INT: lvl.Main*job.Stats().INT/100 + clan.Stats().INT,
+			MND: lvl.Main*job.Stats().MND/100 + clan.Stats().MND,
+		},
+		SecondaryStats: SecondaryStats{
+			DET:  lvl.Main,
+			PT:   lvl.Main,
+			CRIT: lvl.Sub,
+			DH:   lvl.Sub,
+			SKS:  lvl.Sub,
+			SPS:  lvl.Sub,
+			TNC:  lvl.Sub,
+		},
 	}
 }
 
-func Speed(lvl LevelMod, SS int) int {
+func Speed(lvl Level, SS int) int {
 	// uses skill speed or spell speed
 	return 130*(SS-lvl.Sub)/lvl.Div + 1000
 }
 
-func AttackFactor(lvl LevelMod, AP int, job Job) int {
+func AttackFactor(lvl Level, AP int, job Job) int {
 	// uses attack power (AP) or magic attack potency (MAP)
-	// tank=190, others=237
-	switch job {
-	// case :
+	if (job & TANK) > 0 {
+		fmt.Printf("attack factor: %v\n", 190*(AP-lvl.Main)/lvl.Main+100)
+		return 190*(AP-lvl.Main)/lvl.Main + 100
 	}
-	return 190*(AP-lvl.Main)/lvl.Main + 100
+
+	fmt.Printf("attack factor: %v\n", 237*(AP-lvl.Main)/lvl.Main+100)
+	return 237*(AP-lvl.Main)/lvl.Main + 100
 }
 
-func DeterminationFactor(lvl LevelMod, DET int) int {
+func DeterminationFactor(lvl Level, DET int) int {
+	fmt.Printf("determination factor: %v\n", 140*(DET-lvl.Main)/lvl.Div+1000)
 	return 140*(DET-lvl.Main)/lvl.Div + 1000
 }
 
-func TenacityFactor(lvl LevelMod, TNC int) int {
+func TenacityFactor(lvl Level, TNC int) int {
+	fmt.Printf("tenacity factor: %v\n", 112*(TNC-lvl.Sub)/lvl.Div+1000)
 	return 112*(TNC-lvl.Sub)/lvl.Div + 1000
 }
 
-func WeaponDamageFactor(lvl LevelMod, job Job, WD int) int {
+func WeaponDamageFactor(lvl Level, job Job, WD int) int {
 	// weaponDmg is Physical Damage or Magical Damage of the weapon
 	// the attribute being used depends on the action, we assume it's the primary stat for simplicity
-	return lvl.Main*job.PrimaryStat()/1000 + WD
+	// fmt.Printf("WD factor: %v\n", lvl.Main*job.PrimaryStat(job.Stats().MainStats)/1000+WD)
+	return lvl.Main*job.PrimaryStat(job.Stats().MainStats)/1000 + WD
 }
 
 // Direct Hit (DH damage is 1.25x of normal)
 
 const dhMultiplier float64 = 1.25
 
-func DirectHitChance(lvl LevelMod, DH int) float64 {
+func DirectHitChance(lvl Level, DH int) float64 {
 	return float64(uint(550*(DH-lvl.Sub)/lvl.Div)) / 10
 }
 
 // Crit
 
-func CritChance(lvl LevelMod, CRIT int) float64 {
+func CritChance(lvl Level, CRIT int) float64 {
 	return float64(uint(200*(CRIT-lvl.Sub)/lvl.Div+50)) / 10
 }
 
-func CritMultiplier(lvl LevelMod, CRIT int) float64 {
+func CritMultiplier(lvl Level, CRIT int) float64 {
 	return float64(200*(CRIT-lvl.Sub)/lvl.Div+1400) / 1000
 }
 
@@ -68,7 +86,7 @@ func GCD() float64 {
 // Damage (DMG)
 
 type Attributes struct {
-	Lvl  LevelMod
+	Lvl  Level
 	Job  Job
 	WD   int
 	AP   int

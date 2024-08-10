@@ -7,18 +7,12 @@ import (
 )
 
 func main() {
-	gear, err := LoadGear()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	gearMap := make(map[string]GearItem)
-	for _, g := range gear {
-		gearMap[g.Name] = g
-	}
+	gearMap := GearMap()
 
 	set := GearSet{
+		Lvl:       Lvl100,
 		Job:       GNB,
+		Clan:      KeepersOfTheMoon,
 		Weapon:    gearMap["Skyruin Gunblade"].Meld(SavageMight12).Meld(SavageMight12),
 		Head:      gearMap["Light-heavy Bandana of Fending"].Meld(HeavensEye12).Meld(HeavensEye12),
 		Body:      gearMap["Archeo Kingdom Cuirass of Fending"].Meld(HeavensEye12).Meld(HeavensEye12),
@@ -32,12 +26,12 @@ func main() {
 		RightRing: gearMap["Archeo Kingdom Ring of Fending"].Meld(HeavensEye12),
 	}
 
-	fmt.Println(set.Weapon.PhysDMG)
 	statsJSON, err := json.MarshalIndent(set.Stats(), "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(statsJSON))
+	fmt.Printf("Gear set stats: %v\n", string(statsJSON))
 
-	fmt.Println(set.DamageNormalized())
+	fmt.Printf("damage base: %v\n", set.DamageBase())
+	// fmt.Printf("damage normalized: %v\n", set.DamageNormalized())
 }
