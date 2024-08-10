@@ -14,7 +14,7 @@ func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 
 	dmg := DamageBase(Attributes{
 		Lvl:  LevelMod100,
-		Job:  JobModifiers["GNB"],
+		Job:  GNB,
 		WD:   141,
 		AP:   4395,
 		DET:  1978,
@@ -28,7 +28,7 @@ func TestCompareBaseDamageWithXIVGear(t *testing.T) {
 func TestCompareNormalisedDamageWithEtro(t *testing.T) {
 	dmgNormalized := DamageNormalized(Attributes{
 		Lvl:  LevelMod100,
-		Job:  JobModifiers["GNB"],
+		Job:  GNB,
 		WD:   141,
 		AP:   4395,
 		DET:  1978,
@@ -58,7 +58,7 @@ func TestDHChance(t *testing.T) {
 }
 
 func TestATKMultiplier(t *testing.T) {
-	atk := AttackFactor(LevelMod100, 4395)
+	atk := AttackFactor(LevelMod100, 4395, GNB)
 	assert.Equal(t, 18.07, float64(atk)/100)
 }
 

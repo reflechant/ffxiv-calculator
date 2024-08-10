@@ -1,11 +1,11 @@
 package main
 
 type MainStats struct {
-	STR int
-	DEX int
-	VIT int
-	INT int
-	MND int
+	STR int `json:"Strength"`
+	DEX int `json:"Dexterity"`
+	VIT int `json:"Vitality"`
+	INT int `json:"Intelligence"`
+	MND int `json:"Mind"`
 }
 
 func SumMainStats(stats ...MainStats) MainStats {
@@ -22,17 +22,17 @@ func SumMainStats(stats ...MainStats) MainStats {
 }
 
 type SecondaryStats struct {
-	CRIT uint
-	DET  uint
-	DH   uint
-	SKS  uint
-	SPS  uint
-	TNC  uint
-	PT   uint
+	CRIT int `json:"Critical Hit"`
+	DET  int `json:"Determination"`
+	DH   int `json:"Direct Hit Rate"`
+	SKS  int `json:"Skill Speed"`
+	SPS  int `json:"Spell Speed"`
+	TNC  int `json:"Tenacity"`
+	PT   int `json:"Piety"`
 }
 
 // Cap returnes capped secondary stats
-func (st SecondaryStats) Cap(cap uint) SecondaryStats {
+func (st SecondaryStats) Cap(cap int) SecondaryStats {
 	return SecondaryStats{
 		CRIT: min(cap, st.CRIT),
 		DET:  min(cap, st.DET),
