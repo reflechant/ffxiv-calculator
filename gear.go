@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"log"
 )
 
@@ -49,25 +48,27 @@ func (set GearSet) Stats() Stats {
 }
 
 func (set GearSet) DamageBase() int {
-	fmt.Printf("%#v\n", Attributes{
-		Lvl:  Lvl100,
-		Job:  set.Job,
-		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
-		DET:  set.Stats().DET,
-		TNC:  set.Stats().TNC,
-		CRIT: set.Stats().CRIT,
-		DH:   set.Stats().DH,
-	})
+	stats := set.Stats()
+
+	// fmt.Printf("%#v\n", Attributes{
+	// 	Lvl:  Lvl100,
+	// 	Job:  set.Job,
+	// 	WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
+	// 	AP:   set.Job.PrimaryStat(stats.MainStats),
+	// 	DET:  stats.DET,
+	// 	TNC:  stats.TNC,
+	// 	CRIT: stats.CRIT,
+	// 	DH:   stats.DH,
+	// })
 	return DamageBase(Attributes{
 		Lvl:  Lvl100,
 		Job:  set.Job,
 		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
-		DET:  set.Stats().DET,
-		TNC:  set.Stats().TNC,
-		CRIT: set.Stats().CRIT,
-		DH:   set.Stats().DH,
+		AP:   set.Job.PrimaryStat(stats.MainStats),
+		DET:  stats.DET,
+		TNC:  stats.TNC,
+		CRIT: stats.CRIT,
+		DH:   stats.DH,
 	}, 100)
 }
 
@@ -111,6 +112,7 @@ func (it GearItem) EffectiveStats() Stats {
 		MainStats:      it.Stats.MainStats,
 		SecondaryStats: secondaryStats.Cap(cap),
 	}
+	// fmt.Println("******")
 	// fmt.Printf("%v stats:\n", it.Name)
 	// statsJSON, _ := json.MarshalIndent(stats, "", "  ")
 	// fmt.Println(string(statsJSON))
@@ -160,16 +162,26 @@ func LoadGear() ([]GearItem, error) {
 	return gear, err
 }
 
-func GearMap() map[string]GearItem {
+type GearDB map[string]GearItem
+
+func GearMap() GearDB {
 	gear, err := LoadGear()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	gearMap := make(map[string]GearItem)
+	gearMap := make(GearDB)
 	for _, g := range gear {
 		gearMap[g.Name] = g
 	}
 
 	return gearMap
+}
+
+func (db GearDB) Item(name string) GearItem {
+	v, ok := db[name]
+	if !ok {
+		panic("not found " + name)
+	}
+	return v
 }

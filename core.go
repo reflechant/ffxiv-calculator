@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 // All the formulas and values come from the Allagan Studies project
 // (see https://www.akhmorning.com/)
 
@@ -34,21 +32,21 @@ func Speed(lvl Level, SS int) int {
 func AttackFactor(lvl Level, AP int, job Job) int {
 	// uses attack power (AP) or magic attack potency (MAP)
 	if (job & TANK) > 0 {
-		fmt.Printf("attack factor: %v\n", 190*(AP-lvl.Main)/lvl.Main+100)
+		// fmt.Printf("attack factor: %v\n", 190*(AP-lvl.Main)/lvl.Main+100)
 		return 190*(AP-lvl.Main)/lvl.Main + 100
 	}
 
-	fmt.Printf("attack factor: %v\n", 237*(AP-lvl.Main)/lvl.Main+100)
+	// fmt.Printf("attack factor: %v\n", 237*(AP-lvl.Main)/lvl.Main+100)
 	return 237*(AP-lvl.Main)/lvl.Main + 100
 }
 
 func DeterminationFactor(lvl Level, DET int) int {
-	fmt.Printf("determination factor: %v\n", 140*(DET-lvl.Main)/lvl.Div+1000)
+	// fmt.Printf("determination factor: %v\n", 140*(DET-lvl.Main)/lvl.Div+1000)
 	return 140*(DET-lvl.Main)/lvl.Div + 1000
 }
 
 func TenacityFactor(lvl Level, TNC int) int {
-	fmt.Printf("tenacity factor: %v\n", 112*(TNC-lvl.Sub)/lvl.Div+1000)
+	// fmt.Printf("tenacity factor: %v\n", 112*(TNC-lvl.Sub)/lvl.Div+1000)
 	return 112*(TNC-lvl.Sub)/lvl.Div + 1000
 }
 

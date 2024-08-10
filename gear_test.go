@@ -165,44 +165,45 @@ func TestGearSet_Stats_Melded(t *testing.T) {
 		Ears:      gearMap["Archeo Kingdom Earrings of Fending"].Meld(SavageAim12).Meld(HeavensEye12),
 		Neck:      gearMap["Dark Horse Champion's Choker of Fending"],
 		Wrist:     gearMap["Light-heavy Bangle of Fending"].Meld(HeavensEye12),
-		LeftRing:  gearMap["Resilient Ring of Fending"].Meld(HeavensEye12),
+		LeftRing:  gearMap["Light-heavy Ring of Fending"].Meld(HeavensEye12),
 		RightRing: gearMap["Archeo Kingdom Ring of Fending"].Meld(HeavensEye12),
 	}
 
 	stats := set.Stats()
-	assert.Equal(t, 4396, stats.STR)
-	assert.Equal(t, 3006, stats.CRIT)
+	assert.Equal(t, 4395, stats.STR)
+	assert.Equal(t, 2829, stats.CRIT)
 	assert.Equal(t, 1068, stats.DH)
-	assert.Equal(t, 1978, stats.DET)
-	assert.Equal(t, 794, stats.TNC)
+	assert.Equal(t, 2102, stats.DET)
+	assert.Equal(t, 847, stats.TNC)
 }
 
 func TestGearSet_Stats_NoMateria(t *testing.T) {
 	gearMap := GearMap()
+
 	set := GearSet{
 		Lvl:       Lvl100,
 		Job:       GNB,
 		Clan:      KeepersOfTheMoon,
-		Weapon:    gearMap["Skyruin Gunblade"],
-		Head:      gearMap["Light-heavy Bandana of Fending"],
-		Body:      gearMap["Archeo Kingdom Cuirass of Fending"],
-		Hands:     gearMap["Light-heavy Halfgloves of Fending"],
-		Legs:      gearMap["Archeo Kingdom Poleyns of Fending"],
-		Feet:      gearMap["Light-heavy Greaves of Fending"],
-		Ears:      gearMap["Archeo Kingdom Earrings of Fending"],
-		Neck:      gearMap["Dark Horse Champion's Choker of Fending"],
-		Wrist:     gearMap["Light-heavy Bangle of Fending"],
-		LeftRing:  gearMap["Resilient Ring of Fending"],
-		RightRing: gearMap["Archeo Kingdom Ring of Fending"],
+		Weapon:    gearMap.Item("Skyruin Gunblade"),
+		Head:      gearMap.Item("Light-heavy Bandana of Fending"),
+		Body:      gearMap.Item("Archeo Kingdom Cuirass of Fending"),
+		Hands:     gearMap.Item("Light-heavy Halfgloves of Fending"),
+		Legs:      gearMap.Item("Archeo Kingdom Poleyns of Fending"),
+		Feet:      gearMap.Item("Light-heavy Greaves of Fending"),
+		Ears:      gearMap.Item("Archeo Kingdom Earrings of Fending"),
+		Neck:      gearMap.Item("Dark Horse Champion's Choker of Fending"),
+		Wrist:     gearMap.Item("Light-heavy Bangle of Fending"),
+		LeftRing:  gearMap.Item("Light-heavy Ring of Fending"),
+		RightRing: gearMap.Item("Archeo Kingdom Ring of Fending"),
 	}
 
 	stats := set.Stats()
-	assert.Equal(t, 4396, stats.STR)
-	assert.Equal(t, 2846, stats.CRIT)
+	assert.Equal(t, 4395, stats.STR)
+	assert.Equal(t, 2669, stats.CRIT)
 	assert.Equal(t, 420, stats.DH)
-	assert.Equal(t, 1870, stats.DET)
-	assert.Equal(t, 794, stats.TNC)
+	assert.Equal(t, 1994, stats.DET)
+	assert.Equal(t, 847, stats.TNC)
 
 	damageBase := set.DamageBase()
-	assert.InEpsilon(t, 3639, damageBase, epsilon)
+	assert.InEpsilon(t, 3666, damageBase, 0.002)
 }
