@@ -30,3 +30,7 @@ go.work.sum
 
 # Python cache
 __pycache__/
+
+# Ignore research files
+*.csv
+*.ipynb
