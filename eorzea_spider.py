@@ -21,7 +21,7 @@ categories = {
     "Legs": [3, 36],
     "Feet": [3, 38],
     "Earring": [4, 41],
-    "Necklace": [4, 41],
+    "Necklace": [4, 40],
     "Bracelets": [4, 42],
     "Ring": [4, 43],
 }
@@ -110,7 +110,7 @@ def init_argparse() -> argparse.ArgumentParser:
         description="Download information about all FFXIV gear items from the official Eorzea Database"
     )
 
-    parser.add_argument("-min", "--min_ilvl", default=1, type=int)
+    parser.add_argument("-min", "--min_ilvl", default=710, type=int)
     parser.add_argument("-max", "--max_ilvl", default=999, type=int)
     parser.add_argument("-o", "--out", default="items.json")
 
