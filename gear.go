@@ -50,16 +50,6 @@ func (set GearSet) Stats() Stats {
 func (set GearSet) DamageBase() int {
 	stats := set.Stats()
 
-	// fmt.Printf("%#v\n", Attributes{
-	// 	Lvl:  Lvl100,
-	// 	Job:  set.Job,
-	// 	WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-	// 	AP:   set.Job.PrimaryStat(stats.MainStats),
-	// 	DET:  stats.DET,
-	// 	TNC:  stats.TNC,
-	// 	CRIT: stats.CRIT,
-	// 	DH:   stats.DH,
-	// })
 	return DamageBase(Attributes{
 		Lvl:  Lvl100,
 		Job:  set.Job,
@@ -73,15 +63,17 @@ func (set GearSet) DamageBase() int {
 }
 
 func (set GearSet) DamageNormalized() float64 {
+	stats := set.Stats()
+
 	return DamageNormalized(Attributes{
 		Lvl:  Lvl100,
 		Job:  set.Job,
 		WD:   int(set.Weapon.WD()), // it's always integer, it being float is an artifact of data scraping
-		AP:   set.Job.PrimaryStat(set.Stats().MainStats),
-		DET:  set.Stats().DET,
-		TNC:  set.Stats().TNC,
-		CRIT: set.Stats().CRIT,
-		DH:   set.Stats().DH,
+		AP:   set.Job.PrimaryStat(stats.MainStats),
+		DET:  stats.DET,
+		TNC:  stats.TNC,
+		CRIT: stats.CRIT,
+		DH:   stats.DH,
 	}, 100)
 }
 
@@ -112,10 +104,6 @@ func (it GearItem) EffectiveStats() Stats {
 		MainStats:      it.Stats.MainStats,
 		SecondaryStats: secondaryStats.Cap(cap),
 	}
-	// fmt.Println("******")
-	// fmt.Printf("%v stats:\n", it.Name)
-	// statsJSON, _ := json.MarshalIndent(stats, "", "  ")
-	// fmt.Println(string(statsJSON))
 
 	return stats
 }
@@ -137,11 +125,6 @@ func (it GearItem) Meld(materia Materia) GearItem {
 	}
 	it.MateriaSlots++
 	it.MateriaMelded = append(it.MateriaMelded, materia)
-	// return GearItem{
-	// 	Stats:         it.Stats,
-	// 	MateriaSlots:  it.MateriaSlots + 1,
-	// 	MateriaMelded: append(it.MateriaMelded, materia),
-	// }
 
 	return it
 }
@@ -150,10 +133,12 @@ func (it GearItem) WD() float64 {
 	return max(it.PhysDMG, it.MagDMG)
 }
 
-//go:embed items.json
+// JSONs produced by scraping Eorzea Database (with eorzea_spider.py) miss some items (for example on August 11, 2024 Resilient gear was still hidden and marked with ??? (probably to avoid spoilers?))
+
+// go:embed items.json
 var f embed.FS
 
-func LoadGear() ([]GearItem, error) {
+func LoadGearJSON() ([]GearItem, error) {
 	data, _ := f.ReadFile("items.json")
 
 	var gear []GearItem
@@ -162,10 +147,8 @@ func LoadGear() ([]GearItem, error) {
 	return gear, err
 }
 
-type GearDB map[string]GearItem
-
-func GearMap() GearDB {
-	gear, err := LoadGear()
+func GearMapFromJSON() GearDB {
+	gear, err := LoadGearJSON()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -177,6 +160,8 @@ func GearMap() GearDB {
 
 	return gearMap
 }
+
+type GearDB map[string]GearItem
 
 func (db GearDB) Item(name string) GearItem {
 	v, ok := db[name]

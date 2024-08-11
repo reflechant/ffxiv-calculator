@@ -66,7 +66,7 @@ func TestGearSet_DamageNormalized_OnlyMainArm(t *testing.T) {
 		Weapon: skyruinGunblade,
 	}
 	dmg := set.DamageNormalized()
-	assert.InEpsilon(t, 651.43, dmg, 0.002)
+	assert.InEpsilon(t, 651.429256, dmg, epsilon)
 }
 
 func TestGearItem_PossibleMelds(t *testing.T) {
@@ -151,7 +151,7 @@ func TestGearLoader(t *testing.T) {
 }
 
 func TestGearSet_Stats_Melded(t *testing.T) {
-	gearMap := GearMap()
+	gearMap := GearMapFromJSON()
 	set := GearSet{
 		Lvl:       Lvl100,
 		Job:       GNB,
@@ -178,7 +178,7 @@ func TestGearSet_Stats_Melded(t *testing.T) {
 }
 
 func TestGearSet_Stats_NoMateria(t *testing.T) {
-	gearMap := GearMap()
+	gearMap := GearMapFromJSON()
 
 	set := GearSet{
 		Lvl:       Lvl100,

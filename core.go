@@ -32,28 +32,23 @@ func Speed(lvl Level, SS int) int {
 func AttackFactor(lvl Level, AP int, job Job) int {
 	// uses attack power (AP) or magic attack potency (MAP)
 	if (job & TANK) > 0 {
-		// fmt.Printf("attack factor: %v\n", 190*(AP-lvl.Main)/lvl.Main+100)
 		return 190*(AP-lvl.Main)/lvl.Main + 100
 	}
 
-	// fmt.Printf("attack factor: %v\n", 237*(AP-lvl.Main)/lvl.Main+100)
 	return 237*(AP-lvl.Main)/lvl.Main + 100
 }
 
 func DeterminationFactor(lvl Level, DET int) int {
-	// fmt.Printf("determination factor: %v\n", 140*(DET-lvl.Main)/lvl.Div+1000)
 	return 140*(DET-lvl.Main)/lvl.Div + 1000
 }
 
 func TenacityFactor(lvl Level, TNC int) int {
-	// fmt.Printf("tenacity factor: %v\n", 112*(TNC-lvl.Sub)/lvl.Div+1000)
 	return 112*(TNC-lvl.Sub)/lvl.Div + 1000
 }
 
 func WeaponDamageFactor(lvl Level, job Job, WD int) int {
-	// weaponDmg is Physical Damage or Magical Damage of the weapon
+	// WD is Physical Damage or Magical Damage of the weapon
 	// the attribute being used depends on the action, we assume it's the primary stat for simplicity
-	// fmt.Printf("WD factor: %v\n", lvl.Main*job.PrimaryStat(job.Stats().MainStats)/1000+WD)
 	return lvl.Main*job.PrimaryStat(job.Stats().MainStats)/1000 + WD
 }
 
@@ -73,12 +68,6 @@ func CritChance(lvl Level, CRIT int) float64 {
 
 func CritMultiplier(lvl Level, CRIT int) float64 {
 	return float64(200*(CRIT-lvl.Sub)/lvl.Div+1400) / 1000
-}
-
-// GCD
-
-func GCD() float64 {
-	panic("not implemented yet")
 }
 
 // Damage (DMG)

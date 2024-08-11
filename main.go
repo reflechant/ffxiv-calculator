@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	gearMap := GearMap()
+	gearMap := GearMapFromJSON()
 
 	set := GearSet{
 		Lvl:       Lvl100,
