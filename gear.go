@@ -11,8 +11,8 @@ type GearSet struct {
 	Job  Job
 	Clan Clan
 
-	Weapon  GearItem
-	OffHand GearItem
+	Weapon GearItem
+	Shield GearItem
 
 	Head  GearItem
 	Body  GearItem
@@ -31,7 +31,7 @@ func (set GearSet) Stats() Stats {
 	return SumStats(
 		BaseStats(set.Lvl, set.Job, set.Clan),
 		set.Weapon.EffectiveStats(),
-		set.OffHand.EffectiveStats(),
+		set.Shield.EffectiveStats(),
 
 		set.Head.EffectiveStats(),
 		set.Body.EffectiveStats(),
@@ -135,14 +135,17 @@ func (it GearItem) WD() float64 {
 
 // JSONs produced by scraping Eorzea Database (with eorzea_spider.py) miss some items (for example on August 11, 2024 Resilient gear was still hidden and marked with ??? (probably to avoid spoilers?))
 
-// go:embed items.json
+//go:embed items.json
 var f embed.FS
 
 func LoadGearJSON() ([]GearItem, error) {
-	data, _ := f.ReadFile("items.json")
+	data, err := f.ReadFile("items.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var gear []GearItem
-	err := json.Unmarshal(data, &gear)
+	err = json.Unmarshal(data, &gear)
 
 	return gear, err
 }

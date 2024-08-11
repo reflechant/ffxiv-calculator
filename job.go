@@ -64,6 +64,7 @@ type JobMod struct {
 
 var jobModifiers = map[Job]JobMod{
 	GNB: {HP: 120, MP: 100, MainStats: MainStats{STR: 100, VIT: 110, DEX: 95, INT: 60, MND: 100}},
+	BRD: {HP: 105, MP: 100, MainStats: MainStats{STR: 90, VIT: 100, DEX: 115, INT: 85, MND: 80}},
 }
 
 func (job Job) Stats() JobMod {
@@ -71,15 +72,123 @@ func (job Job) Stats() JobMod {
 }
 
 func (job Job) PrimaryStat(stats MainStats) int {
-	switch job {
-	case GNB:
+	if job&TANK > 0 {
 		return stats.STR
-	default:
-		panic("not implemented")
 	}
+	if job&RANGED_PHYSICAL_DPS > 0 {
+		return stats.DEX
+	}
+	if job&(ROG|NIN|VPR) > 0 {
+		return stats.DEX
+	}
+	if job&MELEE_DPS > 0 {
+		return stats.STR
+	}
+	if job&RANGED_MAGICAL_DPS > 0 {
+		return stats.INT
+	}
+
+	// RDM, AST, SGE ???
+
+	panic("not implemented")
+
 }
 
 // SS returns skill speed or spell speed
 func (job Job) SS() int {
 	panic("not implemented")
+}
+
+var mainArmCategories = map[Job][]string{
+	// tanks
+	GLA: {"Gladiator's Arm"},
+	PLD: {"Gladiator's Arm"},
+	MRD: {"Marauder's Arm"},
+	WAR: {"Marauder's Arm"},
+	DRK: {"Dark Knight's Arm"},
+	GNB: {"Gunbreaker's Arm"},
+
+	// healers
+	CNJ: {"One–handed Conjurer's Arm", "Two–handed Conjurer's Arm"},
+	WHM: {"One–handed Conjurer's Arm", "Two–handed Conjurer's Arm"},
+	SCH: {"Scholar's Arm"},
+	AST: {"Astrologian's Arm"},
+	SGE: {"Sage's Arm"},
+
+	// melee DPS
+	LNC: {"Lancer's Arm"},
+	DRG: {"Lancer's Arm"},
+	PGL: {"Pugilist's Arm"},
+	MNK: {"Pugilist's Arm"},
+	ROG: {"Rogue's Arm"},
+	NIN: {"Rogue's Arm"},
+	SAM: {"Samurai's Arm"},
+	RPR: {"Reaper's Arm"},
+	VPR: {"Viper's Arm"},
+
+	// ranged physical DPS
+	ARC: {"Archer's Arm"},
+	BRD: {"Archer's Arm"},
+	MCH: {"Machinist's Arm"},
+	DNC: {"Dancer's Arm"},
+
+	// ranged magical DPS
+	THM: {"One–handed Thaumaturge's Arm", "Two–handed Thaumaturge's Arm"},
+	BLM: {"One–handed Thaumaturge's Arm", "Two–handed Thaumaturge's Arm"},
+	ACN: {"Arcanist's Grimoire"},
+	SMN: {"Arcanist's Grimoire"},
+	RDM: {"Red Mage's Arm"},
+	PCT: {"Pictomancer's Arm"},
+
+	// limited
+	BLU: {"Blue Mage's Arm"},
+}
+
+func (job Job) mainArmCategories() []string {
+	return mainArmCategories[job]
+}
+
+var jobNames = map[Job]string{
+	// tanks
+	GLA: "GLA ",
+	PLD: "PLD",
+	MRD: "MRD",
+	WAR: "WAR",
+	DRK: "DRK",
+	GNB: "GNB",
+
+	// healers
+	CNJ: "CNJ",
+	WHM: "WHM",
+	SCH: "SCH",
+	AST: "AST",
+	SGE: "SGE",
+
+	// melee DPS
+	LNC: "LNC",
+	DRG: "DRG",
+	PGL: "PGL",
+	MNK: "MNK",
+	ROG: "ROG",
+	NIN: "NIN",
+	SAM: "SAM",
+	RPR: "RPR",
+	VPR: "VPR",
+
+	// ranged physical DPS
+	ARC: "ARC",
+	BRD: "BRD",
+	MCH: "MCH",
+	DNC: "DNC",
+
+	// ranged magical DPS
+	THM: "THM",
+	BLM: "BLM",
+	ACN: "ACN",
+	SMN: "SMN",
+	RDM: "RDM",
+	PCT: "PCT",
+
+	// limited
+	BLU: "BLU",
 }
