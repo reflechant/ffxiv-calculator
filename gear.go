@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -79,16 +80,16 @@ func (set GearSet) DamageNormalized() float64 {
 
 // GearItem is a generic peace of gear. Some fields are type-dependant and only contain non-zero values for certain types of gear
 type GearItem struct {
-	Name   string `json:"name"`
-	Lvl    uint   `json:"ilvl"`
-	Jobs   Job    // bitmask
-	JobLvl uint   `json:"job level"`
+	Name string `json:"name"`
+	Lvl  uint   `json:"ilvl"`
+	// Jobs   Job    // bitmask
+	JobLvl uint `json:"job level"`
 	Stats
-	PhysDMG       float64 `json:"Physical Damage,omitempty"`
-	MagDMG        float64 `json:"Magic Damage,omitempty"`
-	AutoAtk       float64 `json:"Auto-attack,omitempty"`
-	Delay         float64 `json:"Delay,omitempty"`
-	MateriaSlots  int     `json:"materia slots,omitempty"`
+	PhysDMG float64 `json:"Physical Damage,omitempty"`
+	MagDMG  float64 `json:"Magic Damage,omitempty"`
+	// AutoAtk       float64 `json:"Auto-attack,omitempty"`
+	// Delay         float64 `json:"Delay,omitempty"`
+	MateriaSlots  int `json:"materia slots,omitempty"`
 	MateriaMelded []Materia
 }
 
@@ -138,38 +139,47 @@ func (it GearItem) WD() float64 {
 //go:embed items.json
 var f embed.FS
 
-func LoadGearJSON() ([]GearItem, error) {
+// job -> item type -> item name -> item stats
+type GearDB map[string]map[string]map[string]GearItem
+
+func LoadGearJSON() GearDB {
 	data, err := f.ReadFile("items.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var gear []GearItem
+	var gear GearDB
 	err = json.Unmarshal(data, &gear)
-
-	return gear, err
-}
-
-func GearMapFromJSON() GearDB {
-	gear, err := LoadGearJSON()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	gearMap := make(GearDB)
-	for _, g := range gear {
-		gearMap[g.Name] = g
-	}
-
-	return gearMap
+	return gear
 }
 
-type GearDB map[string]GearItem
+// possible categories:
+// "weapon",
+// "Shield",
+// "Head",
+// "Body",
+// "Legs",
+// "Hands",
+// "Feet",
+// "Necklace"
+// "Earrings"
+// "Bracelets
+// "Ring",
 
 func (db GearDB) Item(name string) GearItem {
-	v, ok := db[name]
-	if !ok {
-		panic("not found " + name)
+	for job := range db {
+		for category := range db[job] {
+			v, ok := db[job][category][name]
+			if ok {
+				fmt.Printf("found %s in %s: %s\n", name, job, category)
+				return v
+			}
+		}
 	}
-	return v
+
+	panic("not found " + name)
 }

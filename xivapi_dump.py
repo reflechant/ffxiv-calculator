@@ -5,10 +5,12 @@ A command line tool to dump information about battle gear and weapons from the X
 """
 
 import argparse
+import csv
 import json
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from typing import Any, Dict
 
+from frozendict import frozendict
 import requests
 
 gear_categories = [
@@ -119,19 +121,23 @@ def init_argparse() -> argparse.ArgumentParser:
         description="Download information about all FFXIV gear items from the official Eorzea Database"
     )
 
-    parser.add_argument("-min", "--min_ilvl", default=710, type=int)
-    parser.add_argument("-max", "--max_ilvl", default=999, type=int)
-    parser.add_argument("-o", "--out", default="items-xivapi.json")
+    parser.add_argument("-min", "--min_ilvl", default=710, type=int, nargs="?")
+    parser.add_argument("-max", "--max_ilvl", default=999, type=int, nargs="?")
+    parser.add_argument("-o", "--out", default="items-xivapi.json", nargs="?")
+    parser.add_argument(
+        "-f", "--format", choices=["json", "csv"], default="json", nargs="?"
+    )
 
     return parser
 
 
-def load(job: str, category: str) -> Dict[str, Dict[str, Any]]:
+def load(job: str, category: str) -> Dict[str, frozendict[str, Any]]:
     filters = [
-        f"LevelItem>={limits.min_ilvl}",
-        f"LevelItem<={limits.max_ilvl}",
-        f"ClassJobCategory.{job}=true",
-        f"ItemUICategory.Name=\"{category}\"",
+        f"+LevelItem>={limits.min_ilvl}",
+        f"+LevelItem<={limits.max_ilvl}",
+        f"+ClassJobCategory.{job}=true",
+        # f"ClassJobUse.ClassJobCategory.{job}=true",
+        f'+ItemUICategory.Name="{category}"',
     ]
     query = " ".join(filters)
     limit = 3000
@@ -142,29 +148,35 @@ def load(job: str, category: str) -> Dict[str, Dict[str, Any]]:
 
     url = f"https://beta.xivapi.com/api/1/search?sheets=Item&query={query}&limit={limit}&fields={fields}"
 
+    # print(url)
+
     response = requests.get(url, timeout=30.0)
 
-    items = map(lambda it: it['fields'],response.json()["results"])
+    items = map(lambda it: it["fields"], response.json()["results"])
 
     return {
-        it["Name"]: {
-            "ilvl": it["LevelItem"]["value"],
-            "job level": it["LevelEquip"],
-            "Physical Damage": it["DamagePhys"],
-            "Delay": it["Delayms"],
-            "materia slots": it["MateriaSlotCount"],
-        }
-        | dict(
-            zip(
-                (p["fields"]["Name"] for p in it["BaseParam"]),
-                filter(lambda x: x > 0, it["BaseParamValue"]),
-            )
+        it["Name"]: frozendict(
+            {
+                "type": category,
+                "name": it["Name"],
+                "ilvl": it["LevelItem"]["value"],
+                "job level": it["LevelEquip"],
+                "Physical Damage": it["DamagePhys"],
+                "Magic Damage": it["DamageMag"],
+                "Delay": it["Delayms"],
+                "materia slots": it["MateriaSlotCount"],
+                **dict(
+                    zip(
+                        (p["fields"]["Name"] for p in it["BaseParam"]),
+                        filter(lambda x: x > 0, it["BaseParamValue"]),
+                    )
+                ),
+            }
         )
         for it in items
     }
 
-
-def dump_gear(file_name: str):
+def dump_gear_json(file_name: str):
     gear = {}
     for job in jobs:
         print(f"dumping {job} gear")
@@ -173,13 +185,55 @@ def dump_gear(file_name: str):
             print(cat)
             gear[job][cat] = load(job, cat)
 
-        gear[job]["weapon"] = {}
         print("weapon")
+        weapons = {}
         for weapon_type in weapon_categories[job]:
-            gear[job]["weapon"] |= load(job, weapon_type)
+            weapons |= load(job, weapon_type)
+
+        gear[job]["weapon"] = weapons
 
     with open(file_name, "wt", encoding="utf-8") as file:
         json.dump(gear, file)
+
+
+def dump_gear_csv(file_name: str):
+    items = []
+    for job in jobs:
+        print(f"dumping {job} gear")
+        for cat in gear_categories:
+            print(cat)
+            items.extend(load(job, cat).values())
+
+        print("weapon")
+        for weapon_type in weapon_categories[job]:
+            items.extend(load(job, weapon_type).values())
+
+    with open(file_name, "wt", encoding="utf-8", newline="") as file:
+        keys = [
+            "type",
+            "name",
+            "ilvl",
+            "job level",
+            "Physical Damage",
+            "Magic Damage",
+            "Delay",
+            "materia slots",
+            "Strength",
+            "Dexterity",
+            "Vitality",
+            "Intelligence",
+            "Mind",
+            "Critical Hit",
+            "Determination",
+            "Direct Hit Rate",
+            "Skill Speed",
+            "Spell Speed",
+            "Tenacity",
+            "Piety",
+        ]
+        writer = csv.DictWriter(file, keys)
+        writer.writeheader()
+        writer.writerows(items)
 
 
 def main():
@@ -187,7 +241,11 @@ def main():
     args = parser.parse_args()
     limits.min_ilvl = args.min_ilvl
     limits.max_ilvl = args.max_ilvl
-    dump_gear(args.out)
+
+    if args.format == "json":
+        dump_gear_json(args.out)
+    elif args.format == "csv":
+        dump_gear_csv(args.out)
 
 
 if __name__ == "__main__":

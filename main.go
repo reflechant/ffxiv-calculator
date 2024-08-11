@@ -5,9 +5,7 @@ import (
 )
 
 func main() {
-	_ = LoadGear(710, 710, GNB, "Head")
-
-	gearMap := GearMapFromJSON()
+	gearMap := LoadGearJSON()
 
 	set := GearSet{
 		Lvl:       Lvl100,

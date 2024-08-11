@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,13 +10,13 @@ import (
 )
 
 var skyruinGunblade = GearItem{
-	Name:    "Skyruin Gunblade",
-	Lvl:     710,
-	Jobs:    GNB,
+	Name: "Skyruin Gunblade",
+	Lvl:  710,
+	// Jobs:    GNB,
 	JobLvl:  100,
 	PhysDMG: 141.0,
-	AutoAtk: 131.6,
-	Delay:   2.8,
+	// AutoAtk: 131.6,
+	// Delay:   2.8,
 	Stats: Stats{
 		MainStats: MainStats{
 			STR: 550,
@@ -151,7 +152,10 @@ func TestGearLoader(t *testing.T) {
 }
 
 func TestGearSet_Stats_GNBMelded(t *testing.T) {
-	gearMap := GearMapFromJSON()
+	gearMap := LoadGearJSON()
+
+	fmt.Printf("%#v\n", gearMap.Item("Skyruin Gunblade"))
+
 	set := GearSet{
 		Lvl:       Lvl100,
 		Job:       GNB,
@@ -178,7 +182,7 @@ func TestGearSet_Stats_GNBMelded(t *testing.T) {
 }
 
 func TestGearSet_Stats_BardMelded(t *testing.T) {
-	gearMap := GearMapFromJSON()
+	gearMap := LoadGearJSON()
 
 	set := GearSet{
 		Lvl:       Lvl100,
@@ -209,7 +213,7 @@ func TestGearSet_Stats_BardMelded(t *testing.T) {
 }
 
 func TestGearSet_Stats_NoMateria(t *testing.T) {
-	gearMap := GearMapFromJSON()
+	gearMap := LoadGearJSON()
 
 	set := GearSet{
 		Lvl:       Lvl100,
