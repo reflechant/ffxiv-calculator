@@ -9,6 +9,7 @@ The idea is to automatically calculate the best possible gear set from available
 ## To do
 
 - Proper support of crafted gear that can be HQ (right now it assumes NQ stats)
+- Support of overmelding
 - Food buffs
 - UI? Web? CLI? to be decided
 - Party buffs

@@ -14,11 +14,11 @@ from frozendict import frozendict
 import requests
 
 gear_categories = [
-    "Shield",
+    # "Shield",
     "Head",
     "Body",
-    "Legs",
     "Hands",
+    "Legs",
     "Feet",
     "Necklace",
     "Earrings",
@@ -28,37 +28,37 @@ gear_categories = [
 
 jobs = [
     # tanks
-    "GLA",
+    # "GLA",
     "PLD",
-    "MRD",
+    # "MRD",
     "WAR",
-    "DRK",
+    # "DRK",
     "GNB",
     #  healers
-    "CNJ",
+    # "CNJ",
     "WHM",
     "SCH",
     "AST",
     "SGE",
     # melee dps
-    "LNC",
+    # "LNC",
     "DRG",
-    "PGL",
+    # "PGL",
     "MNK",
-    "ROG",
+    # "ROG",
     "NIN",
     "SAM",
     "RPR",
     "VPR",
     # ranged physical dps
-    "ARC",
+    # "ARC",
     "BRD",
     "MCH",
     "DNC",
     # ranged magical dps
-    "THM",
+    # "THM",
     "BLM",
-    "ACN",
+    # "ACN",
     "SMN",
     "RDM",
     "PCT",
@@ -113,7 +113,7 @@ class Limits:
     max_ilvl: int
 
 
-limits = Limits(690, 999)
+limits = Limits(0, 0)
 
 
 def init_argparse() -> argparse.ArgumentParser:
@@ -121,7 +121,7 @@ def init_argparse() -> argparse.ArgumentParser:
         description="Download information about all FFXIV gear items from the official Eorzea Database"
     )
 
-    parser.add_argument("-min", "--min_ilvl", default=710, type=int, nargs="?")
+    parser.add_argument("-min", "--min_ilvl", default=690, type=int, nargs="?")
     parser.add_argument("-max", "--max_ilvl", default=999, type=int, nargs="?")
     parser.add_argument("-o", "--out", default="items-xivapi.json", nargs="?")
     parser.add_argument(
@@ -141,7 +141,7 @@ def load(job: str, category: str) -> Dict[str, frozendict[str, Any]]:
     ]
     query = " ".join(filters)
     limit = 3000
-    fields = "Name,LevelEquip,LevelItem.value,DamagePhys,DamageMag,Delayms,BaseParam[].Name,BaseParamValue,ItemUICategory.Name,MateriaSlotCount"
+    fields = "Name,LevelEquip,LevelItem.value,DamagePhys,DamageMag,Delayms,BaseParam[].Name,BaseParamValue,CanBeHq,BaseParamSpecial[].Name,BaseParamValueSpecial,ItemUICategory.Name,MateriaSlotCount"
 
     query = requests.utils.quote(query)
     fields = requests.utils.quote(fields)
@@ -155,45 +155,59 @@ def load(job: str, category: str) -> Dict[str, frozendict[str, Any]]:
     items = map(lambda it: it["fields"], response.json()["results"])
 
     return {
-        it["Name"]: frozendict(
-            {
-                "type": category,
-                "name": it["Name"],
-                "ilvl": it["LevelItem"]["value"],
-                "job level": it["LevelEquip"],
-                "Physical Damage": it["DamagePhys"],
-                "Magic Damage": it["DamageMag"],
-                "Delay": it["Delayms"],
-                "materia slots": it["MateriaSlotCount"],
-                **dict(
-                    zip(
-                        (p["fields"]["Name"] for p in it["BaseParam"]),
-                        filter(lambda x: x > 0, it["BaseParamValue"]),
-                    )
-                ),
-            }
-        )
+        it["Name"]: {
+            "type": it["ItemUICategory"]["fields"]["Name"],
+            "ilvl": it["LevelItem"]["value"],
+            "job level": it["LevelEquip"],
+            "Physical Damage": it["DamagePhys"],
+            "Magic Damage": it["DamageMag"],
+            "Delay": it["Delayms"],
+            "materia slots": it["MateriaSlotCount"],
+            "can be HQ": it["CanBeHq"],
+            **dict(
+                zip(
+                    (p["fields"]["Name"] for p in it["BaseParam"]),
+                    filter(lambda x: x > 0, it["BaseParamValue"]),
+                )
+            ),
+            "BaseParamSpecial": dict(
+                zip(
+                    (p["fields"]["Name"] for p in it["BaseParamSpecial"]),
+                    filter(lambda x: x > 0, it["BaseParamValueSpecial"]),
+                )
+            ),
+        }
         for it in items
     }
 
+
 def dump_gear_json(file_name: str):
+    gear_index = {}
     gear = {}
     for job in jobs:
         print(f"dumping {job} gear")
-        gear[job] = {}
+        gear_index[job] = {}
         for cat in gear_categories:
             print(cat)
-            gear[job][cat] = load(job, cat)
+            items = load(job, cat)
+            gear_index[job][cat] = [name for name in items]
+            gear |= items
 
-        print("weapon")
+        print("Weapon")
         weapons = {}
         for weapon_type in weapon_categories[job]:
             weapons |= load(job, weapon_type)
 
-        gear[job]["weapon"] = weapons
+        gear_index[job]["Weapon"] = [name for name in weapons]
+        gear |= weapons
+
+        print("OffHand")
+        items = load(job, "Shield")
+        gear_index[job]["OffHand"] = [name for name in items]
+        gear |= items
 
     with open(file_name, "wt", encoding="utf-8") as file:
-        json.dump(gear, file)
+        json.dump({"index": gear_index, "items": gear}, file)
 
 
 def dump_gear_csv(file_name: str):
@@ -241,6 +255,8 @@ def main():
     args = parser.parse_args()
     limits.min_ilvl = args.min_ilvl
     limits.max_ilvl = args.max_ilvl
+
+    print(f"loading gear from {limits.min_ilvl} to {limits.max_ilvl         }")
 
     if args.format == "json":
         dump_gear_json(args.out)

@@ -71,6 +71,33 @@ func (job Job) Stats() JobMod {
 	return jobModifiers[job]
 }
 
+// stat cap multipliers in percents
+func (job Job) StatCapMultipliers() Stats {
+	statsMultipliers := Stats{
+		MainStats: MainStats{
+			STR: 100,
+			DEX: 100,
+			VIT: 100,
+			INT: 100,
+			MND: 100,
+		},
+		SecondaryStats: SecondaryStats{
+			CRIT: 100,
+			DET:  100,
+			DH:   100,
+			SKS:  100,
+			SPS:  100,
+			TNC:  100,
+			PT:   100,
+		},
+	}
+	if job&(HEALER|RANGED_MAGICAL_DPS) > 0 {
+		statsMultipliers.VIT = 90
+	}
+
+	return statsMultipliers
+}
+
 func (job Job) PrimaryStat(stats MainStats) int {
 	if job&TANK > 0 {
 		return stats.STR
@@ -148,43 +175,47 @@ func (job Job) mainArmCategories() []string {
 	return mainArmCategories[job]
 }
 
-var jobNames = map[Job]string{
+func (job Job) String() string {
+	return jobs[job]
+}
+
+var jobs = map[Job]string{
 	// tanks
-	GLA: "GLA ",
+	// GLA: "GLA ",
 	PLD: "PLD",
-	MRD: "MRD",
+	// MRD: "MRD",
 	WAR: "WAR",
 	DRK: "DRK",
 	GNB: "GNB",
 
 	// healers
-	CNJ: "CNJ",
+	// CNJ: "CNJ",
 	WHM: "WHM",
 	SCH: "SCH",
 	AST: "AST",
 	SGE: "SGE",
 
 	// melee DPS
-	LNC: "LNC",
+	// LNC: "LNC",
 	DRG: "DRG",
-	PGL: "PGL",
+	// PGL: "PGL",
 	MNK: "MNK",
-	ROG: "ROG",
+	// ROG: "ROG",
 	NIN: "NIN",
 	SAM: "SAM",
 	RPR: "RPR",
 	VPR: "VPR",
 
 	// ranged physical DPS
-	ARC: "ARC",
+	// ARC: "ARC",
 	BRD: "BRD",
 	MCH: "MCH",
 	DNC: "DNC",
 
 	// ranged magical DPS
-	THM: "THM",
+	// THM: "THM",
 	BLM: "BLM",
-	ACN: "ACN",
+	// ACN: "ACN",
 	SMN: "SMN",
 	RDM: "RDM",
 	PCT: "PCT",
