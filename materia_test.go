@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,9 +19,9 @@ func TestMateriaCombinationsOf2(t *testing.T) {
 		SavageAim12,
 	}, 2)
 
-	for i := range combos {
-		for j := range combos[i] {
-			fmt.Printf("%v ", combos[i][j].Name)
+	for combo := range combos {
+		for m := range slices.Values(combo) {
+			fmt.Printf("%v ", m.Name)
 		}
 		fmt.Println()
 	}
