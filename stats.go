@@ -8,6 +8,17 @@ type MainStats struct {
 	MND int `json:"Mind,omitempty"`
 }
 
+// Cap returnes capped main stats
+func (st MainStats) Cap(cap int) MainStats {
+	return MainStats{
+		STR: min(cap, st.STR),
+		DEX: min(cap, st.DEX),
+		VIT: min(cap, st.VIT),
+		INT: min(cap, st.INT),
+		MND: min(cap, st.MND),
+	}
+}
+
 func SumMainStats(stats ...MainStats) MainStats {
 	var sum MainStats
 	for _, stat := range stats {
@@ -72,4 +83,26 @@ func SumStats(stats ...Stats) Stats {
 	}
 
 	return sum
+}
+
+// Diff returns diff needed to s -> s2
+func (s Stats) Diff(s2 Stats) Stats {
+	return Stats{
+		MainStats: MainStats{
+			STR: s2.STR - s.STR,
+			DEX: s2.DEX - s.DEX,
+			VIT: s2.VIT - s.VIT,
+			INT: s2.INT - s.INT,
+			MND: s2.MND - s.MND,
+		},
+		SecondaryStats: SecondaryStats{
+			CRIT: s2.CRIT - s.CRIT,
+			DET:  s2.DET - s.DET,
+			DH:   s2.DH - s.DH,
+			SKS:  s2.SKS - s.SKS,
+			SPS:  s2.SPS - s.SPS,
+			TNC:  s2.TNC - s.TNC,
+			PT:   s2.PT - s.PT,
+		},
+	}
 }

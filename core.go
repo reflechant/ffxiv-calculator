@@ -29,8 +29,8 @@ func SpeedFactor(lvl Level, SS int) int {
 	return 130 * (SS - lvl.Sub()) / lvl.Div()
 }
 
-func GCD(lvl Level, SS int) float64 {
-	return (1000 - float64(SpeedFactor(lvl, SS))) * float64(2.5) / 1000
+func GCD(lvl Level, job Job, stats SecondaryStats) float64 {
+	return (1000 - float64(SpeedFactor(lvl, job.SS(stats)))) * float64(2.5) / 1000
 }
 
 func AttackFactor(lvl Level, AP int, job Job) int {

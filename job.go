@@ -122,8 +122,12 @@ func (job Job) PrimaryStat(stats MainStats) int {
 }
 
 // SS returns skill speed or spell speed
-func (job Job) SS() int {
-	panic("not implemented")
+func (job Job) SS(stats SecondaryStats) int {
+	if job&(TANK|MELEE_DPS|RANGED_PHYSICAL_DPS) > 0 {
+		return stats.SKS
+	}
+
+	return stats.SPS
 }
 
 var mainArmCategories = map[Job][]string{

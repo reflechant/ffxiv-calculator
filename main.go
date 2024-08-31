@@ -4,7 +4,6 @@ import "fmt"
 
 func main() {
 	gear, _ := runForm()
-
 	bis := gear.BiS(GNB, 100, KeepersOfTheMoon, []*Materia{SavageAim12, SavageMight12, HeavensEye12, QuickArm12})
 
 	if bis.Lvl == 0 {

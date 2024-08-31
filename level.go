@@ -11,8 +11,8 @@ type LevelMod struct {
 }
 
 var levelMods = map[Level]LevelMod{
-	1:   LevelMod{HP: 86, MP: 10000, Main: 20, Sub: 56, Div: 56},
-	100: LevelMod{HP: 4000, MP: 10000, Main: 440, Sub: 420, Div: 2780},
+	1:   {HP: 86, MP: 10000, Main: 20, Sub: 56, Div: 56},
+	100: {HP: 4000, MP: 10000, Main: 440, Sub: 420, Div: 2780},
 }
 
 func (l Level) HP() int {

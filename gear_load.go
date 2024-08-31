@@ -21,6 +21,7 @@ var Gear GearDB
 
 func init() {
 	Gear = LoadGearJSON()
+	BaseParam = LoadBaseParam()
 }
 
 func LoadGearJSON() GearDB {

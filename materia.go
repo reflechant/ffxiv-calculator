@@ -1,8 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"log"
+	"fmt"
+	"iter"
+	"reflect"
+	"slices"
 )
 
 type Materia struct {
@@ -79,51 +81,78 @@ var MateriaTypes = []*Materia{
 }
 
 func (m *Materia) String() string {
-	statsJSON, err := json.Marshal(m.SecondaryStats)
-	if err != nil {
-		log.Fatal(err)
+	mStats := reflect.ValueOf(m.SecondaryStats)
+	for i := 0; i < mStats.NumField(); i++ {
+		statName := mStats.Type().Field(i).Name
+		statVal, ok := mStats.Field(i).Interface().(int)
+		if !ok {
+			panic("non int stat")
+		}
+		if statVal > 0 {
+			return fmt.Sprintf("%4s+%2d", statName, statVal)
+		}
 	}
 
-	return string(statsJSON)
+	return "??? materia"
+
+	// statsJSON, err := json.Marshal(m.SecondaryStats)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// return string(statsJSON)
 }
 
 // MateriaCombinations returns combinations with replacement
-func MateriaCombinations(materiaTypes []*Materia, slots int) [][]*Materia {
-	result := [][]*Materia{{}}
-	combination := make([]*Materia, slots)
+func MateriaCombinations(materiaTypes []*Materia, slotsNum int) iter.Seq[[]*Materia] {
+	// result := [][]*Materia{{}}
+	// combination := make([]*Materia, slots)
 
-	var generate func(int, int)
-	generate = func(index, start int) {
-		if index == slots {
-			temp := make([]*Materia, slots)
-			copy(temp, combination)
-			result = append(result, temp)
-			return
-		}
+	// var generate func(int, int)
+	// generate = func(index, start int) {
+	// 	if index == slots {
+	// 		temp := make([]*Materia, slots)
+	// 		copy(temp, combination)
+	// 		result = append(result, temp)
+	// 		return
+	// 	}
 
-		for i := start; i < len(materiaTypes); i++ {
-			combination[index] = materiaTypes[i]
-			generate(index+1, i)
-		}
+	// 	for i := start; i < len(materiaTypes); i++ {
+	// 		combination[index] = materiaTypes[i]
+	// 		generate(index+1, i)
+	// 	}
 
-		if index > 0 {
-			temp := make([]*Materia, index)
-			copy(temp, combination[:index])
-			result = append(result, temp)
+	// 	if index > 0 {
+	// 		temp := make([]*Materia, index)
+	// 		copy(temp, combination[:index])
+	// 		result = append(result, temp)
+	// 	}
+	// }
+
+	// generate(0, 0)
+
+	return func(yield func([]*Materia) bool) {
+		var generate func([]*Materia)
+		generate = func(m []*Materia) {
+			if len(m) == slotsNum {
+				if !yield(m) {
+					return
+				}
+			}
+			for mType := range slices.Values(materiaTypes) {
+				generate(append(slices.Clone(m), mType))
+			}
 		}
+		generate([]*Materia{})
 	}
-
-	generate(0, 0)
-
-	return result
 }
 
 func GearMeldCombinations(materiaTypes []*Materia, items ...GearItem) []GearItem {
-	result := make([]GearItem, 0)
+	result := []GearItem{{}}
 
 	for _, item := range items {
 		materiaCombos := MateriaCombinations(materiaTypes, item.MateriaSlots)
-		for _, combo := range materiaCombos {
+		for combo := range materiaCombos {
 			g := item
 			for _, materia := range combo {
 				g = g.Meld(materia)

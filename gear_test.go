@@ -29,6 +29,12 @@ var skyruinGunblade = GearItem{
 	MateriaSlots: 2,
 }
 
+func Test(t *testing.T) {
+	ring := Gear.Item("Quetzalli Ring of Fending")
+	assert.Equal(t, 182, ring.SecondaryStatCap())
+	assert.Equal(t, ring.EffectiveStats(), ring.Meld(SavageAim12).Meld(SavageAim12).EffectiveStats())
+}
+
 func TestGearSet_Stats_NoGear100(t *testing.T) {
 	set := GearSet{
 		Lvl:  100,
@@ -104,32 +110,30 @@ func TestGearItem_PossibleMelds(t *testing.T) {
 func TestGearLoader(t *testing.T) {
 	jsonStr := `
 	{
-        "name": "Light-heavy Brais of Casting",
-        "ilvl": 710,
-        "job": [
-            "THM",
-            "ACN",
-            "BLM",
-            "SMN",
-            "RDM",
-            "BLU",
-            "PCT"
-        ],
-        "job level": 100,
-        "Defense": 589.0,
-        "Magic Defense": 1031.0,
-        "Vitality": 494,
-        "Intelligence": 530,
-        "Determination": 357,
-        "Direct Hit Rate": 250,
-        "materia slots": 2
+        "Name": "Light-heavy Brais of Casting",
+        "Type": "Legs",
+		"ItemLvl": 710,
+		"EquipLvl": 100,
+		"PhysDmg": 0,
+		"MagDmg": 0,
+		"DelayMS": 0,
+		"MateriaSlotCount": 2,
+		"CanBeHq": false,
+		"IsUnique": true,
+		"Intelligence": 530,
+		"Vitality": 494,
+		"Determination": 357,
+		"Direct Hit Rate": 250,
+		"BaseParamSpecial": {}
     }`
 
 	g := GearItem{}
 	expected := GearItem{
-		Name:   "Light-heavy Brais of Casting",
-		Lvl:    710,
-		JobLvl: 100,
+		Name:     "Light-heavy Brais of Casting",
+		Type:     "Legs",
+		Lvl:      710,
+		JobLvl:   100,
+		IsUnique: true,
 		Stats: Stats{
 			MainStats: MainStats{
 				VIT: 494,
@@ -235,3 +239,25 @@ func TestGearSet_Stats_NoMateria(t *testing.T) {
 	damageBase := set.DamageBase()
 	assert.InEpsilon(t, 3666, damageBase, epsilon)
 }
+
+// func TestMaxItemNameLength(t *testing.T) {
+// 	maxLen := 0
+// 	maxname := ""
+
+// 	for jobCatItems := range maps.Values(Gear.Index) {
+// 		for catItems := range maps.Values(jobCatItems) {
+// 			for name := range slices.Values(catItems) {
+// 				if len(name) > maxLen {
+// 					maxLen = len(name)
+// 					maxname = name
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	fmt.Println(maxname)
+// 	fmt.Println(maxLen)
+// 	t.Fail()
+
+// 	// it's 43 for "Dark Horse Champion's Halfgloves of Casting"
+// }

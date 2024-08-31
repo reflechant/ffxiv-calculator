@@ -73,6 +73,6 @@ func TestBaseStats(t *testing.T) {
 }
 
 func TestGCD(t *testing.T) {
-	gcd := GCD(100, 702)
+	gcd := GCD(100, RPR, SecondaryStats{SKS: 702})
 	assert.InEpsilon(t, 2.46, gcd, 0.0031)
 }

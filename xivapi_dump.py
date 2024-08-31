@@ -141,7 +141,7 @@ def load(job: str, category: str) -> Dict[str, frozendict[str, Any]]:
     ]
     query = " ".join(filters)
     limit = 3000
-    fields = "Name,LevelEquip,LevelItem.value,DamagePhys,DamageMag,Delayms,BaseParam[].Name,BaseParamValue,CanBeHq,BaseParamSpecial[].Name,BaseParamValueSpecial,ItemUICategory.Name,MateriaSlotCount"
+    fields = "Name,LevelEquip,LevelItem.value,DamagePhys,DamageMag,Delayms,BaseParam[].Name,BaseParamValue,CanBeHq,IsUnique,BaseParamSpecial[].Name,BaseParamValueSpecial,ItemUICategory.Name,EquipSlotCategory.value,MateriaSlotCount"
 
     query = requests.utils.quote(query)
     fields = requests.utils.quote(fields)
@@ -156,14 +156,16 @@ def load(job: str, category: str) -> Dict[str, frozendict[str, Any]]:
 
     return {
         it["Name"]: {
-            "type": it["ItemUICategory"]["fields"]["Name"],
-            "ilvl": it["LevelItem"]["value"],
-            "job level": it["LevelEquip"],
-            "Physical Damage": it["DamagePhys"],
-            "Magic Damage": it["DamageMag"],
-            "Delay": it["Delayms"],
-            "materia slots": it["MateriaSlotCount"],
-            "can be HQ": it["CanBeHq"],
+            "Type": it["ItemUICategory"]["fields"]["Name"],
+            "EquipSlotCategory": it["EquipSlotCategory"]["value"],
+            "ItemLvl": it["LevelItem"]["value"],
+            "EquipLvl": it["LevelEquip"],
+            "PhysDmg": it["DamagePhys"],
+            "MagDmg": it["DamageMag"],
+            # "DelayMS": it["Delayms"],
+            "MateriaSlotCount": it["MateriaSlotCount"],
+            "CanBeHq": it["CanBeHq"],
+            "IsUnique": it["IsUnique"],
             **dict(
                 zip(
                     (p["fields"]["Name"] for p in it["BaseParam"]),

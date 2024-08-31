@@ -1,7 +1,9 @@
 package main
 
 import (
+	"maps"
 	"math"
+	"slices"
 )
 
 type AvailableGear struct {
@@ -14,29 +16,43 @@ type AvailableGear struct {
 	Legs  []GearItem
 	Feet  []GearItem
 
-	Ears      []GearItem
-	Neck      []GearItem
-	Wrist     []GearItem
-	LeftRing  []GearItem // to avoid special case of unique rings
-	RightRing []GearItem
+	Ears  []GearItem
+	Neck  []GearItem
+	Wrist []GearItem
+	Ring  []GearItem
 }
 
 var SlotItemUICategory = map[string]string{
-	"Weapon":    "Weapon",
-	"OffHand":   "OffHand",
-	"Head":      "Head",
-	"Body":      "Body",
-	"Hands":     "Hands",
-	"Legs":      "Legs",
-	"Feet":      "Feet",
-	"Ears":      "Earrings",
-	"Neck":      "Necklace",
-	"Wrist":     "Bracelets",
-	"LeftRing":  "Ring",
-	"RightRing": "Ring",
+	"Weapon":  "Weapon",
+	"OffHand": "OffHand",
+	"Head":    "Head",
+	"Body":    "Body",
+	"Hands":   "Hands",
+	"Legs":    "Legs",
+	"Feet":    "Feet",
+	"Ears":    "Earrings",
+	"Neck":    "Necklace",
+	"Wrist":   "Bracelets",
+	"Ring":    "Ring",
 }
 
-func (ag AvailableGear) ToMap() map[string][]GearItem {
+func (ag AvailableGear) Map() map[string][]GearItem {
+	return map[string][]GearItem{
+		"Weapon":  ag.Weapon,
+		"OffHand": ag.OffHand,
+		"Head":    ag.Head,
+		"Body":    ag.Body,
+		"Hands":   ag.Hands,
+		"Legs":    ag.Legs,
+		"Feet":    ag.Feet,
+		"Ears":    ag.Ears,
+		"Neck":    ag.Neck,
+		"Wrist":   ag.Wrist,
+		"Ring":    ag.Ring,
+	}
+}
+
+func (ag AvailableGear) SlotAvailableItems() map[string][]GearItem {
 	return map[string][]GearItem{
 		"Weapon":    ag.Weapon,
 		"OffHand":   ag.OffHand,
@@ -48,12 +64,12 @@ func (ag AvailableGear) ToMap() map[string][]GearItem {
 		"Ears":      ag.Ears,
 		"Neck":      ag.Neck,
 		"Wrist":     ag.Wrist,
-		"LeftRing":  ag.LeftRing,
-		"RightRing": ag.RightRing,
+		"LeftRing":  ag.Ring,
+		"RightRing": ag.Ring,
 	}
 }
 
-func (ag *AvailableGear) LoadFromMap(m map[string][]GearItem) {
+func (ag *AvailableGear) Load(m map[string][]GearItem) {
 	ag.Weapon = m["Weapon"]
 	ag.OffHand = m["OffHand"]
 	ag.Head = m["Head"]
@@ -64,39 +80,49 @@ func (ag *AvailableGear) LoadFromMap(m map[string][]GearItem) {
 	ag.Ears = m["Ears"]
 	ag.Neck = m["Neck"]
 	ag.Wrist = m["Wrist"]
-	ag.LeftRing = m["LeftRing"]
-	ag.RightRing = m["RightRing"]
+	ag.Ring = m["Ring"]
 }
 
 // Combinations will return all possible gear set combinations out of available gear
 // For now we meld with materia 12 only
 func (g AvailableGear) Combinations(materiaTypes []*Materia) []GearSet {
 	var gearSets []GearSet
-	m := g.ToMap()
+	slotItems := g.SlotAvailableItems()
 
 	gearMeldCombos := map[string][]GearItem{}
 
-	for slot := range m {
-		gearMeldCombos[slot] = GearMeldCombinations(materiaTypes, m[slot]...)
-
+	slots := make([]string, 0, len(slotItems))
+	for slot := range slotItems {
+		slots = append(slots, slot)
+		gearMeldCombos[slot] = GearMeldCombinations(materiaTypes, slotItems[slot]...)
 	}
 
-	stop := false
-	for !stop {
-		stop = true
-
-		gsMap := map[string]GearItem{}
-		for slot, items := range gearMeldCombos {
-			if len(items) > 0 {
-				stop = false
-				gsMap[slot] = items[0]
-				gearMeldCombos[slot] = items[1:]
+	var gearSetCombinations func(map[string]GearItem, []string)
+	gearSetCombinations = func(gsMap map[string]GearItem, slotsToFill []string) {
+		if len(slotsToFill) == 0 {
+			gs := GearSet{}
+			gs.LoadFromMap(gsMap)
+			// skip invalid gear sets with duplicate unique items (it can only be rings)
+			if (gs.LeftRing.Name == gs.RightRing.Name) && gs.LeftRing.IsUnique {
+				// fmt.Printf("can't have 2 of %s\n", gs.LeftRing.Name)
+				return
 			}
+
+			gearSets = append(gearSets, gs)
+			return
 		}
-		gs := GearSet{}
-		gs.LoadFromMap(gsMap)
-		gearSets = append(gearSets, gs)
+
+		slot := slotsToFill[0]
+		items := gearMeldCombos[slot]
+		for it := range slices.Values(items) {
+			m := maps.Clone(gsMap)
+			m[slot] = it
+			gearSetCombinations(m, slotsToFill[1:])
+		}
 	}
+
+	gsMap := map[string]GearItem{}
+	gearSetCombinations(gsMap, slots)
 
 	return gearSets
 }
@@ -108,10 +134,10 @@ func (g AvailableGear) BiS(job Job, lvl Level, clan Clan, materiaTypes []*Materi
 	var bis GearSet
 	for _, gs := range gearSets {
 
-		gcd := GCD(lvl, gs.Stats().SKS)
-		if gcd > 2.5 {
-			continue
-		}
+		// gcd := GCD(lvl, job, gs.Stats().SecondaryStats)
+		// if gcd > 2.5 {
+		// 	continue
+		// }
 
 		gs.Job = job
 		gs.Lvl = lvl
@@ -119,6 +145,10 @@ func (g AvailableGear) BiS(job Job, lvl Level, clan Clan, materiaTypes []*Materi
 		dmg := gs.DamageNormalized()
 
 		if dmg > bestDmg {
+			// fmt.Printf("better gear set found (dmg = %f):\n", dmg)
+			// diffJSON, _ := json.MarshalIndent(bis.Stats().Diff(gs.Stats()), "", "  ")
+			// fmt.Println(string(diffJSON))
+
 			bis = gs
 			bestDmg = dmg
 		}

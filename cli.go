@@ -25,8 +25,8 @@ func runForm() (AvailableGear, []*Materia) {
 		"Ears",
 		"Neck",
 		"Wrist",
-		"LeftRing",
-		"RightRing"}) {
+		"Ring",
+	}) {
 		selectedItems := []string{}
 
 		items := Gear.Index["GNB"][SlotItemUICategory[slot]]
@@ -93,7 +93,7 @@ func runForm() (AvailableGear, []*Materia) {
 	// }
 
 	// calculate selected gear
-	gearMap := gear.ToMap()
+	gearMap := gear.Map()
 	for slot, itemNames := range selectedGearMap {
 		items := []GearItem{}
 		for itemName := range slices.Values(*itemNames) {
@@ -101,7 +101,7 @@ func runForm() (AvailableGear, []*Materia) {
 		}
 		gearMap[slot] = items
 	}
-	gear.LoadFromMap(gearMap)
+	gear.Load(gearMap)
 
 	return gear, materiaTypes
 }
