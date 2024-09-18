@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"iter"
 	"maps"
 	"math"
@@ -91,8 +90,6 @@ func (g AvailableGear) Combinations(materiaTypes []*Materia) iter.Seq[GearSet] {
 		slots := make([]string, 0, len(slotItems))
 		gearMeldCombos := map[string]iter.Seq[GearItem]{}
 
-		fmt.Printf("slotItems: %v\n", slotItems)
-
 		for slot, items := range slotItems {
 			slots = append(slots, slot)
 			gearMeldCombos[slot] = GearMeldCombinations(materiaTypes, items...)
@@ -109,8 +106,6 @@ func (g AvailableGear) Combinations(materiaTypes []*Materia) iter.Seq[GearSet] {
 				slotsToFill: slots,
 			},
 		}
-
-		fmt.Printf("queue: %v\n", queue)
 
 		for len(queue) > 0 {
 			gsMap, slotsToFill := queue[0].gsMap, queue[0].slotsToFill
@@ -147,10 +142,7 @@ func (g AvailableGear) Combinations(materiaTypes []*Materia) iter.Seq[GearSet] {
 }
 
 func (g AvailableGear) BiS(job Job, lvl Level, clan Clan, materiaTypes []*Materia, gcdMin, gcdMax float64) GearSet {
-	// gearSets := slices.Collect(g.Combinations(materiaTypes))
 	gearSets := g.Combinations(materiaTypes)
-
-	fmt.Println(gearSets)
 
 	bestDmg := math.Inf(-1)
 	var bis GearSet
