@@ -37,7 +37,7 @@ func TestBis(t *testing.T) {
 		},
 	}
 
-	bis := inventory.BiS(GNB, 100, KeepersOfTheMoon, []*Materia{SavageAim12, SavageMight12, HeavensEye12, QuickArm12})
+	bis := inventory.BiS(GNB, 100, KeepersOfTheMoon, []*Materia{SavageAim12, SavageMight12}, 2.4, 2.6)
 
 	assert.Equal(t, GearSet{
 		Lvl:    100,

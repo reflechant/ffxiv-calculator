@@ -105,61 +105,47 @@ func (m *Materia) String() string {
 
 // MateriaCombinations returns combinations with replacement
 func MateriaCombinations(materiaTypes []*Materia, slotsNum int) iter.Seq[[]*Materia] {
-	// result := [][]*Materia{{}}
-	// combination := make([]*Materia, slots)
-
-	// var generate func(int, int)
-	// generate = func(index, start int) {
-	// 	if index == slots {
-	// 		temp := make([]*Materia, slots)
-	// 		copy(temp, combination)
-	// 		result = append(result, temp)
-	// 		return
-	// 	}
-
-	// 	for i := start; i < len(materiaTypes); i++ {
-	// 		combination[index] = materiaTypes[i]
-	// 		generate(index+1, i)
-	// 	}
-
-	// 	if index > 0 {
-	// 		temp := make([]*Materia, index)
-	// 		copy(temp, combination[:index])
-	// 		result = append(result, temp)
-	// 	}
-	// }
-
-	// generate(0, 0)
-
 	return func(yield func([]*Materia) bool) {
-		var generate func([]*Materia)
-		generate = func(m []*Materia) {
-			if len(m) == slotsNum {
-				if !yield(m) {
-					return
+		for n := 0; n <= slotsNum; n++ {
+			queue := [][]*Materia{{}}
+			for len(queue) > 0 {
+				combo := queue[0]
+				queue = queue[1:]
+
+				if len(combo) == n {
+					if !yield(combo) {
+						return
+					}
+					continue
+				}
+
+				for mType := range slices.Values(materiaTypes) {
+					comboNext := append(combo, mType)
+					queue = append(queue, comboNext)
 				}
 			}
-			for mType := range slices.Values(materiaTypes) {
-				generate(append(slices.Clone(m), mType))
-			}
 		}
-		generate([]*Materia{})
 	}
 }
 
-func GearMeldCombinations(materiaTypes []*Materia, items ...GearItem) []GearItem {
-	result := []GearItem{{}}
+func GearMeldCombinations(materiaTypes []*Materia, items ...GearItem) iter.Seq[GearItem] {
+	return func(yield func(GearItem) bool) {
+		// yield unequipped gear
+		if !yield(GearItem{}) {
+			return
+		}
 
-	for _, item := range items {
-		materiaCombos := MateriaCombinations(materiaTypes, item.MateriaSlots)
-		for combo := range materiaCombos {
-			g := item
-			for _, materia := range combo {
-				g = g.Meld(materia)
+		for _, item := range items {
+			materiaCombos := MateriaCombinations(materiaTypes, item.MateriaSlots)
+			for combo := range materiaCombos {
+				g := item
+				for _, materia := range combo {
+					g = g.Meld(materia)
+				}
+				if !yield(g) {
+					return
+				}
 			}
-			result = append(result, g)
 		}
 	}
-
-	return result
 }
